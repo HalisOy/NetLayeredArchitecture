@@ -24,4 +24,6 @@ public interface ICartService
     Task<Cart> AddAsync(AddCartDto addCartDto);
     Task<Cart> UpdateAsync(Cart cart);
     Task DeleteByIdAsync(Guid id);
+    void AllDeleteCartItems(Guid userId);
+    Task AllDeleteCartItemsAsync(Guid userId);
 }

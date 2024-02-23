@@ -21,8 +21,8 @@ public class CartItemManager : ICartItemService
     public CartItemManager(ICartItemRepository cartItemRepository, ICartService cartService, CartItemValidations cartItemValidations)
     {
         _cartItemRepository = cartItemRepository;
-        _cartService = cartService;
         _cartItemValidations = cartItemValidations;
+        _cartService = cartService;
     }
 
     public CartItem Add(AddCartItemDto addCartItemDto)
@@ -33,39 +33,50 @@ public class CartItemManager : ICartItemService
             var cartDto = new AddCartDto()
             {
                 UserId = addCartItemDto.UserId,
-                TransactionDate = DateTime.Now
+                TransactionDate = DateTime.Now.AddDays(60)
             };
             cart = _cartService.Add(cartDto);
         }
-        var cartItem = new CartItem();
-        cartItem.CartId = cart.Id;
-        cartItem.ProductId = addCartItemDto.ProductId;
-        cartItem.Quantity = addCartItemDto.Quantity;
+        var cartItem = _cartItemRepository.Get(predicate: item => item.ProductId == addCartItemDto.ProductId);
+        if (cartItem == null)
+        {
+            cartItem.CartId = cart.Id;
+            cartItem.ProductId = addCartItemDto.ProductId;
+            cartItem.Quantity = 0;
+        }
+        cartItem.Quantity += addCartItemDto.Quantity;
+        _cartService.Update(cart);
         _cartItemRepository.Add(cartItem);
         return cartItem;
     }
 
     public async Task<CartItem> AddAsync(AddCartItemDto addCartItemDto)
     {
-        var cart = await _cartService.GetByUserIdAsync(addCartItemDto.UserId);
+        var cart = _cartService.GetByUserId(addCartItemDto.UserId);
         if (cart == null)
         {
             var cartDto = new AddCartDto()
             {
                 UserId = addCartItemDto.UserId,
-                TransactionDate = DateTime.Now
+                TransactionDate = DateTime.Now.AddDays(60)
             };
-            cart = _cartService.Add(cartDto);
+            cart = await _cartService.AddAsync(cartDto);
         }
         var cartItem = await _cartItemRepository.GetAsync(predicate: item => item.ProductId == addCartItemDto.ProductId);
         if (cartItem == null)
         {
+            cartItem = new CartItem();
             cartItem.CartId = cart.Id;
             cartItem.ProductId = addCartItemDto.ProductId;
-            cartItem.Quantity = addCartItemDto.Quantity;
+            cartItem.Quantity = 1;
+            await _cartItemRepository.AddAsync(cartItem);
         }
-        cartItem.Quantity += addCartItemDto.Quantity;
-        await _cartItemRepository.AddAsync(cartItem);
+        else
+        {
+            cartItem.Quantity += addCartItemDto.Quantity;
+            await _cartItemRepository.UpdateAsync(cartItem);
+        }
+        _cartService.Update(cart);
         return cartItem;
     }
 

@@ -40,6 +40,22 @@ public class CartManager : ICartService
         return cart;
     }
 
+    public void AllDeleteCartItems(Guid userId)
+    {
+        var cart = _cartRepository.Get(predicate:c=>c.UserId == userId);
+        _cartValidations.CartMustNotEmpty(cart).Wait();
+        cart.CartItems = null;
+        _cartRepository.Update(cart);
+    }
+
+    public async Task AllDeleteCartItemsAsync(Guid userId)
+    {
+        var cart = await _cartRepository.GetAsync(predicate:c=>c.UserId == userId);
+        await _cartValidations.CartMustNotEmpty(cart);
+        cart.CartItems = null;
+        await _cartRepository.UpdateAsync(cart);
+    }
+
     public void DeleteById(Guid id)
     {
         var userCart = _cartRepository.Get(predicate: cart => cart.Id == id);
@@ -67,7 +83,7 @@ public class CartManager : ICartService
 
     public IList<Cart> GetAllProductsByCartId(Guid id)
     {
-        return _cartRepository.GetAll(predicate:cart=>cart.Id == id,include:cart=>cart.Include(c=>c.CartItems)).ToList();
+        return _cartRepository.GetAll(predicate: cart => cart.Id == id, include: cart => cart.Include(c => c.CartItems)).ToList();
     }
 
     public async Task<IList<Cart>> GetAllProductsByCartIdAsync(Guid id)
@@ -79,7 +95,7 @@ public class CartManager : ICartService
 
     public Cart? GetById(Guid id)
     {
-        var cart = _cartRepository.Get(predicate:cart=>cart.Id==id);
+        var cart = _cartRepository.Get(predicate: cart => cart.Id == id);
         return cart;
     }
 
@@ -103,21 +119,17 @@ public class CartManager : ICartService
 
     public Cart Update(Cart cart)
     {
-        var updateCart = _cartRepository.Get(predicate: c => c.Id == cart.Id);
-        _cartValidations.CartMustNotEmpty(updateCart).Wait();
-        updateCart.UserId = cart.UserId;
-        updateCart.TransactionDate = cart.TransactionDate;
-        _cartRepository.Update(updateCart);
-        return updateCart;
+        _cartValidations.CartMustNotEmpty(cart).Wait();
+        cart.TransactionDate = DateTime.Now.AddDays(60);
+        _cartRepository.Update(cart);
+        return cart;
     }
 
     public async Task<Cart> UpdateAsync(Cart cart)
     {
-        var updateCart = await _cartRepository.GetAsync(predicate: cart => cart.Id == cart.Id);
-        await _cartValidations.CartMustNotEmpty(updateCart);
-        updateCart.UserId = cart.UserId;
-        updateCart.TransactionDate = cart.TransactionDate;
-        await _cartRepository.UpdateAsync(updateCart);
-        return updateCart;
+        await _cartValidations.CartMustNotEmpty(cart);
+        cart.TransactionDate = DateTime.Now.AddDays(60);
+        await _cartRepository.UpdateAsync(cart);
+        return cart;
     }
 }

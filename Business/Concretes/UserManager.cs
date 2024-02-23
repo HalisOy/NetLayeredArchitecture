@@ -9,16 +9,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Core.Aspects.Autofac.Logging;
+using Entities.DTOs;
 
 namespace Business.Concretes;
 public class UserManager : IUserService
 {
     public readonly IUserRepository _userRepository;
+    private readonly IUserClaimRepository _userClaimRepository;
     private readonly UserValidations _userValidations;
-    public UserManager(IUserRepository userRepository, UserValidations userValidations)
+    private readonly ClaimManager _claimManager;
+    public UserManager(IUserRepository userRepository, UserValidations userValidations, ClaimManager claimManager, IUserClaimRepository userClaimRepository)
     {
         _userRepository = userRepository;
+        _userClaimRepository = userClaimRepository;
         _userValidations = userValidations;
+        _claimManager = claimManager;
     }
 
     public User Add(User user)
@@ -50,6 +56,7 @@ public class UserManager : IUserService
         return _userRepository.GetAll().ToList();
     }
 
+    [LogAspect()]
     public async Task<IList<User>> GetAllAsync()
     {
         var result = await _userRepository.GetAllAsync();
@@ -100,14 +107,18 @@ public class UserManager : IUserService
             include: user => user.Include(u => u.UserClaims).ThenInclude(uc => uc.Claim));
     }
 
-    public User? GetById(Guid id)
+    public User GetById(Guid id)
     {
-        return _userRepository.Get(u => u.Id == id);
+        var user = _userRepository.Get(u => u.Id == id);
+        _userValidations.UserMustNotBeEmpty(user).Wait();
+        return user;
     }
 
-    public async Task<User?> GetByIdAsync(Guid id)
+    public async Task<User> GetByIdAsync(Guid id)
     {
-        return await _userRepository.GetAsync(u => u.Id == id);
+        var user = await _userRepository.GetAsync(u => u.Id == id);
+        await _userValidations.UserMustNotBeEmpty(user);
+        return user;
     }
 
     public User Update(User user)
@@ -120,4 +131,27 @@ public class UserManager : IUserService
         return await _userRepository.AddAsync(user);
     }
 
+    public void AddUserClaim(AddUserClaimDto addUserClaimDto)
+    {
+        var user = GetById(addUserClaimDto.UserId);
+        var claim = _claimManager.GetById(addUserClaimDto.ClaimId);
+        _userValidations.UserHaveClaim(user,claim).Wait();
+        _userClaimRepository.Add(new()
+        {
+            UserId=user.Id,
+            ClaimId=claim.Id
+        });
+    }
+
+    public async Task AddUserClaimAsync(AddUserClaimDto addUserClaimDto)
+    {
+        var user = await GetByIdAsync(addUserClaimDto.UserId);
+        var claim = await _claimManager.GetByIdAsync(addUserClaimDto.ClaimId);
+        await _userValidations.UserHaveClaim(user, claim);
+        await _userClaimRepository.AddAsync(new()
+        {
+            UserId = user.Id,
+            ClaimId = claim.Id
+        });
+    }
 }

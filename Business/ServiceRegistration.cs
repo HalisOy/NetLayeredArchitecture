@@ -47,6 +47,7 @@ public static class ServiceRegistration
         services.AddScoped<ICartService, CartManager>();
         services.AddScoped<ICartRepository, CartRepository>();
 
+        services.AddScoped<ProductCommentValidations>();
         services.AddScoped<IProductCommentService, ProductCommentManager>();
         services.AddScoped<IProductCommentRepository, ProductCommentRepository>();
 

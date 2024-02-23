@@ -82,7 +82,7 @@ public class ProductCommentManager : IProductCommentService
     public ProductComment Update(ProductComment productComment)
     {
         var updateProductComment = _productCommentRepository.Get(predicate:productComment=>productComment.Id==productComment.Id);
-        //null validations
+        _productCommentValidations.ProductCommentMustNotEmpty(updateProductComment).Wait();
         updateProductComment.Id = productComment.Id;
         updateProductComment.UserId = productComment.UserId;
         updateProductComment.ProductId = productComment.ProductId;
@@ -94,7 +94,7 @@ public class ProductCommentManager : IProductCommentService
     public async Task<ProductComment> UpdateAsync(ProductComment productComment)
     {
         var updateProductComment = await _productCommentRepository.GetAsync(predicate: productComment => productComment.Id == productComment.Id);
-        //null validations
+        await _productCommentValidations.ProductCommentMustNotEmpty(updateProductComment);
         updateProductComment.Id = productComment.Id;
         updateProductComment.UserId = productComment.UserId;
         updateProductComment.ProductId = productComment.ProductId;

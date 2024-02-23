@@ -1,5 +1,7 @@
+using Autofac.Extensions.DependencyInjection;
 using Business;
 using Business.Tools.Exceptions;
+using Core.Utilities.Tools;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +13,9 @@ builder.Services.AddControllers().AddJsonOptions(options => options.JsonSerializ
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.RegisterBusinessServices();
+builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 
+ServiceTool.CreateServiceProvider(builder.Services);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -21,10 +25,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors(builder => builder.WithOrigins("http://localhost:4200")
+        .AllowAnyMethod()
+        .AllowAnyHeader());
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
-app.UseMiddleware<CustomExceptionHandlerMiddleware>();
+
 app.Run();

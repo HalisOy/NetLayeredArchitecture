@@ -42,7 +42,7 @@ public abstract class Repository<TEntity> : IAsyncRepository<TEntity>, IReposito
     public void Delete(TEntity entity)
     {
         _context.Entry<TEntity>(entity).State = EntityState.Deleted;
-        _context.SaveChangesAsync();
+        _context.SaveChanges();
     }
 
     public async Task DeleteAsync(TEntity entity)
@@ -88,13 +88,13 @@ public abstract class Repository<TEntity> : IAsyncRepository<TEntity>, IReposito
     public TEntity Update(TEntity entity)
     {
         _context.Entry<TEntity>(entity).State = EntityState.Modified;
-        _context.SaveChangesAsync();
+        _context.SaveChanges();
         return entity;
     }
 
     public async Task<TEntity> UpdateAsync(TEntity entity)
     {
-        _context.Entry<TEntity>(entity).State = EntityState.Added;
+        _context.Entry<TEntity>(entity).State = EntityState.Modified;
         await _context.SaveChangesAsync();
         return entity;
     }

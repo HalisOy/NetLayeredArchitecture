@@ -1,4 +1,5 @@
 ﻿using Core.Entities;
+using Entities.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,8 @@ public interface IUserService
     IList<User> GetAllByBirthDateGratherThan(short birthDate);
     IList<User> GetAllByBirthDateLessThan(short birthDate);
     IList<User> GetAllByFirstNameContains(string firstName);
+    void AddUserClaim(AddUserClaimDto addUserClaimDto);
+    Task AddUserClaimAsync(AddUserClaimDto addUserClaimDto);
     User Add(User user);
     User Update(User user);
     void Delete(Guid id);

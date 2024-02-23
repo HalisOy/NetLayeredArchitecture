@@ -25,4 +25,6 @@ public class BusinessDbContext : DbContext
     public DbSet<CartItem> CartItems { get; set; }
     public DbSet<ProductComment> ProductComments { get; set; }
     public DbSet<ProductStockTransaction> ProductStockTransactions { get; set; }
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderItem> OrderItems { get; set; }
 }

@@ -11,9 +11,9 @@ public class Cart : Entity<Guid>
 {
     public Guid UserId { get; set; }
     public DateTime TransactionDate { get; set; }
-    public virtual ICollection<CartItem> CartItems { get; set; }
+    public virtual IList<CartItem> CartItems { get; set; }
     public Cart()
     {
-        CartItems = new HashSet<CartItem>();
+        CartItems = new List<CartItem>();
     }
 }
